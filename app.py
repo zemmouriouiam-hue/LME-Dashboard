@@ -3,7 +3,7 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
-
+ 
 # ─── CONFIG ───────────────────────────────────────────────────────────────────
 st.set_page_config(
     page_title="FinanceOS · Ventes",
@@ -11,24 +11,24 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded",
 )
-
+ 
 # ─── THEME CSS ────────────────────────────────────────────────────────────────
 st.markdown("""
 <style>
   @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500&display=swap');
-
+ 
   html, body, [class*="css"] { font-family: 'DM Sans', sans-serif; }
-
+ 
   /* Background */
   .stApp { background-color: #0b0f1a; color: #e8edf5; }
-
+ 
   /* Sidebar */
   [data-testid="stSidebar"] {
     background-color: #111827;
     border-right: 1px solid #1f2d47;
   }
   [data-testid="stSidebar"] * { color: #e8edf5 !important; }
-
+ 
   /* Metric cards */
   [data-testid="stMetric"] {
     background: #111827;
@@ -50,17 +50,17 @@ st.markdown("""
     color: #e8edf5 !important;
   }
   [data-testid="stMetricDelta"] { font-family: 'DM Mono', monospace !important; }
-
+ 
   /* Dataframe */
   [data-testid="stDataFrame"] { border: 1px solid #1f2d47; border-radius: 10px; }
-
+ 
   /* Selectbox / multiselect */
   .stSelectbox > div, .stMultiSelect > div {
     background-color: #1a2235 !important;
     border-color: #1f2d47 !important;
     border-radius: 8px !important;
   }
-
+ 
   /* Tabs */
   .stTabs [data-baseweb="tab-list"] {
     background: #111827;
@@ -80,10 +80,10 @@ st.markdown("""
     color: #000 !important;
     font-weight: 700 !important;
   }
-
+ 
   /* Divider */
   hr { border-color: #1f2d47; }
-
+ 
   /* Header */
   .logo-header {
     font-family: 'Syne', sans-serif;
@@ -124,7 +124,7 @@ st.markdown("""
   .kpi-accent { color: #00e5a0; font-family: 'DM Mono', monospace; }
 </style>
 """, unsafe_allow_html=True)
-
+ 
 ACCENT   = "#00e5a0"
 ACCENT2  = "#0073ff"
 ACCENT3  = "#ff4d6d"
@@ -135,7 +135,7 @@ SURFACE2 = "#1a2235"
 BORDER   = "#1f2d47"
 MUTED    = "#5a6a84"
 TEXT     = "#e8edf5"
-
+ 
 PLOTLY_LAYOUT = dict(
     paper_bgcolor=SURFACE,
     plot_bgcolor=SURFACE,
@@ -145,7 +145,7 @@ PLOTLY_LAYOUT = dict(
     legend=dict(bgcolor="rgba(0,0,0,0)", font=dict(color=MUTED, size=11)),
     margin=dict(l=12, r=12, t=32, b=12),
 )
-
+ 
 # ─── LOAD DATA ────────────────────────────────────────────────────────────────
 @st.cache_data
 def load_data():
@@ -157,34 +157,34 @@ def load_data():
     df["YearWeek"] = df["Date"].dt.strftime("%Y-W%V")
     df["Cross Section Num"] = pd.to_numeric(df["Cross Section"], errors="coerce")
     return df
-
+ 
 df = load_data()
-
+ 
 # ─── SIDEBAR FILTERS ──────────────────────────────────────────────────────────
 with st.sidebar:
     st.markdown('<div class="logo-header"><span class="logo-badge">$</span> FinanceOS</div>', unsafe_allow_html=True)
     st.markdown('<div class="subtitle">Tableau de bord · Ventes</div>', unsafe_allow_html=True)
     st.markdown("---")
-
+ 
     st.markdown("### 🎛 Filtres")
-
+ 
     entity_opts = ["Tous"] + sorted(df["Entities"].dropna().unique().tolist())
     entity = st.selectbox("Entité", entity_opts)
-
+ 
     customer_opts = ["Tous"] + sorted(df["Customer"].dropna().unique().tolist())
     customer = st.selectbox("Client", customer_opts)
-
+ 
     family_opts = ["Tous"] + sorted(df["Family"].dropna().unique().tolist())
     family = st.selectbox("Famille produit", family_opts)
-
+ 
     date_min = df["Date"].min().date()
     date_max = df["Date"].max().date()
     date_range = st.date_input("Période", value=(date_min, date_max), min_value=date_min, max_value=date_max)
-
+ 
     st.markdown("---")
     st.markdown(f'<div class="subtitle">📅 Données : {date_min.strftime("%d %b")} → {date_max.strftime("%d %b %Y")}</div>', unsafe_allow_html=True)
     st.markdown(f'<div class="subtitle">📦 {len(df):,} lignes · {df["Customer"].nunique()} clients</div>', unsafe_allow_html=True)
-
+ 
 # ─── APPLY FILTERS ────────────────────────────────────────────────────────────
 fdf = df.copy()
 if entity != "Tous":
@@ -195,15 +195,15 @@ if family != "Tous":
     fdf = fdf[fdf["Family"] == family]
 if len(date_range) == 2:
     fdf = fdf[(fdf["Date"].dt.date >= date_range[0]) & (fdf["Date"].dt.date <= date_range[1])]
-
+ 
 # ─── HEADER ───────────────────────────────────────────────────────────────────
 st.markdown('<div class="logo-header">📊 Vue d\'ensemble · Ventes</div>', unsafe_allow_html=True)
 st.markdown(f'<div class="subtitle">Données filtrées · {len(fdf):,} lignes affichées</div>', unsafe_allow_html=True)
 st.markdown("")
-
+ 
 # ─── TABS ─────────────────────────────────────────────────────────────────────
 tab1, tab2, tab3, tab4 = st.tabs(["  KPI & Tendances  ", "  Clients  ", "  Produits  ", "  Données brutes  "])
-
+ 
 # ══════════════════════════════════════════════════════════════════════════════
 # TAB 1 — KPI & TENDANCES
 # ══════════════════════════════════════════════════════════════════════════════
@@ -214,7 +214,7 @@ with tab1:
     avg_lme       = fdf["LME"].mean()
     n_invoices    = fdf["Invoice"].nunique()
     n_customers   = fdf["Customer"].nunique()
-
+ 
     c1, c2, c3, c4, c5, c6 = st.columns(6)
     c1.metric("Chiffre d'affaires", f"{total_amount:,.0f} MAD", delta=None)
     c2.metric("Quantité (m)", f"{total_qty_m:,.0f} m")
@@ -222,18 +222,18 @@ with tab1:
     c4.metric("LME moyen", f"{avg_lme:.3f}")
     c5.metric("Factures", f"{n_invoices:,}")
     c6.metric("Clients actifs", f"{n_customers}")
-
+ 
     st.markdown("")
-
+ 
     # ── Revenus par mois ──────────────────────────────────────────────────────
     col_l, col_r = st.columns([2, 1])
-
+ 
     with col_l:
         st.markdown('<div class="section-title">Chiffre d\'affaires mensuel</div>', unsafe_allow_html=True)
         st.markdown('<div class="section-sub">Montant total par mois · en MAD</div>', unsafe_allow_html=True)
-
+ 
         monthly = fdf.groupby("Month").agg(Amount=("Amount", "sum"), QTY_M=("QTY M", "sum")).reset_index()
-
+ 
         fig = make_subplots(specs=[[{"secondary_y": True}]])
         fig.add_trace(go.Bar(
             x=monthly["Month"], y=monthly["Amount"],
@@ -250,11 +250,11 @@ with tab1:
         fig.update_yaxes(title_text="Montant MAD", secondary_y=False, title_font=dict(color=ACCENT))
         fig.update_yaxes(title_text="Quantité m", secondary_y=True, title_font=dict(color=ACCENT2))
         st.plotly_chart(fig, use_container_width=True)
-
+ 
     with col_r:
         st.markdown('<div class="section-title">Répartition par entité</div>', unsafe_allow_html=True)
         st.markdown('<div class="section-sub">Part du CA par entité</div>', unsafe_allow_html=True)
-
+ 
         by_entity = fdf.groupby("Entities")["Amount"].sum().reset_index()
         fig2 = px.pie(
             by_entity, values="Amount", names="Entities",
@@ -264,13 +264,13 @@ with tab1:
         fig2.update_traces(textinfo="percent+label", textfont_color=TEXT)
         fig2.update_layout(**PLOTLY_LAYOUT, height=300, showlegend=True)
         st.plotly_chart(fig2, use_container_width=True)
-
+ 
     st.markdown("")
-
+ 
     # ── Évolution hebdomadaire ─────────────────────────────────────────────────
     st.markdown('<div class="section-title">Évolution hebdomadaire</div>', unsafe_allow_html=True)
     st.markdown('<div class="section-sub">Cumul du montant par semaine et par entité</div>', unsafe_allow_html=True)
-
+ 
     weekly = fdf.groupby(["YearWeek", "Entities"])["Amount"].sum().reset_index()
     fig3 = px.line(
         weekly, x="YearWeek", y="Amount", color="Entities",
@@ -281,11 +281,11 @@ with tab1:
     fig3.update_traces(line_width=2.5, marker_size=5)
     fig3.update_layout(**PLOTLY_LAYOUT, height=280)
     st.plotly_chart(fig3, use_container_width=True)
-
+ 
     # ── LME dans le temps ─────────────────────────────────────────────────────
     st.markdown('<div class="section-title">Indice LME dans le temps</div>', unsafe_allow_html=True)
     st.markdown('<div class="section-sub">Valeur LME moyenne par semaine</div>', unsafe_allow_html=True)
-
+ 
     lme_weekly = fdf.groupby("YearWeek")["LME"].mean().reset_index()
     fig4 = go.Figure()
     fig4.add_trace(go.Scatter(
@@ -296,14 +296,14 @@ with tab1:
     ))
     fig4.update_layout(**PLOTLY_LAYOUT, height=240)
     st.plotly_chart(fig4, use_container_width=True)
-
+ 
 # ══════════════════════════════════════════════════════════════════════════════
 # TAB 2 — CLIENTS
 # ══════════════════════════════════════════════════════════════════════════════
 with tab2:
     st.markdown('<div class="section-title">Performance par client</div>', unsafe_allow_html=True)
     st.markdown('<div class="section-sub">Montant total · quantité · nombre de lignes</div>', unsafe_allow_html=True)
-
+ 
     by_customer = fdf.groupby("Customer").agg(
         Montant=("Amount", "sum"),
         QTY_M=("QTY M", "sum"),
@@ -311,7 +311,7 @@ with tab2:
         Lignes=("Amount", "count"),
         Factures=("Invoice", "nunique"),
     ).reset_index().sort_values("Montant", ascending=False)
-
+ 
     # Bar chart
     fig5 = px.bar(
         by_customer, x="Montant", y="Customer",
@@ -321,13 +321,13 @@ with tab2:
         text=by_customer["Montant"].apply(lambda x: f"{x:,.0f}"),
     )
     fig5.update_traces(textposition="outside", textfont_color=MUTED)
-    fig5.update_layout(**PLOTLY_LAYOUT, height=400, coloraxis_showscale=False,
-                       yaxis=dict(categoryorder="total ascending", gridcolor=BORDER))
+    fig5.update_layout(**PLOTLY_LAYOUT, height=400, coloraxis_showscale=False)
+    fig5.update_yaxes(categoryorder="total ascending", gridcolor=BORDER)
     st.plotly_chart(fig5, use_container_width=True)
-
+ 
     st.markdown("")
     col_a, col_b = st.columns(2)
-
+ 
     with col_a:
         st.markdown('<div class="section-title">Quantité (m) par client</div>', unsafe_allow_html=True)
         fig6 = px.pie(
@@ -338,7 +338,7 @@ with tab2:
         fig6.update_traces(textinfo="percent", textfont_color=TEXT)
         fig6.update_layout(**PLOTLY_LAYOUT, height=340, showlegend=True)
         st.plotly_chart(fig6, use_container_width=True)
-
+ 
     with col_b:
         st.markdown('<div class="section-title">Évolution mensuelle par client</div>', unsafe_allow_html=True)
         cust_monthly = fdf.groupby(["Month", "Customer"])["Amount"].sum().reset_index()
@@ -351,7 +351,7 @@ with tab2:
         )
         fig7.update_layout(**PLOTLY_LAYOUT, height=340)
         st.plotly_chart(fig7, use_container_width=True)
-
+ 
     # Table récapitulative
     st.markdown('<div class="section-title">Tableau récapitulatif clients</div>', unsafe_allow_html=True)
     by_customer["Montant"] = by_customer["Montant"].map("{:,.0f}".format)
@@ -362,13 +362,13 @@ with tab2:
                                     "QTY_KM": "Qté (km)", "Lignes": "Nb lignes", "Factures": "Nb factures"}),
         use_container_width=True, hide_index=True,
     )
-
+ 
 # ══════════════════════════════════════════════════════════════════════════════
 # TAB 3 — PRODUITS
 # ══════════════════════════════════════════════════════════════════════════════
 with tab3:
     col_p1, col_p2 = st.columns(2)
-
+ 
     with col_p1:
         st.markdown('<div class="section-title">Top 20 familles produits</div>', unsafe_allow_html=True)
         st.markdown('<div class="section-sub">Par chiffre d\'affaires</div>', unsafe_allow_html=True)
@@ -383,7 +383,7 @@ with tab3:
         fig8.update_layout(**PLOTLY_LAYOUT, height=500, coloraxis_showscale=False,
                            yaxis=dict(categoryorder="total ascending"))
         st.plotly_chart(fig8, use_container_width=True)
-
+ 
     with col_p2:
         st.markdown('<div class="section-title">Sections transversales</div>', unsafe_allow_html=True)
         st.markdown('<div class="section-sub">Distribution par section (mm²)</div>', unsafe_allow_html=True)
@@ -397,17 +397,17 @@ with tab3:
         )
         fig9.update_layout(**PLOTLY_LAYOUT, height=500, coloraxis_colorbar=dict(title="Qté (m)"))
         st.plotly_chart(fig9, use_container_width=True)
-
+ 
     st.markdown("")
     st.markdown('<div class="section-title">Famille & Section — Heatmap CA</div>', unsafe_allow_html=True)
     st.markdown('<div class="section-sub">Top 15 familles · Top 10 sections</div>', unsafe_allow_html=True)
-
+ 
     top_fam  = fdf.groupby("Family")["Amount"].sum().nlargest(15).index.tolist()
     top_sec  = fdf.groupby("Cross Section")["Amount"].sum().nlargest(10).index.tolist()
     heat_df  = fdf[fdf["Family"].isin(top_fam) & fdf["Cross Section"].isin(top_sec)]
     pivot    = heat_df.pivot_table(values="Amount", index="Family", columns="Cross Section",
                                    aggfunc="sum", fill_value=0)
-
+ 
     fig10 = go.Figure(go.Heatmap(
         z=pivot.values, x=pivot.columns.tolist(), y=pivot.index.tolist(),
         colorscale=[[0, SURFACE2], [0.5, ACCENT2], [1, ACCENT]],
@@ -416,7 +416,7 @@ with tab3:
     ))
     fig10.update_layout(**PLOTLY_LAYOUT, height=420, xaxis_title="Section (mm²)", yaxis_title="Famille")
     st.plotly_chart(fig10, use_container_width=True)
-
+ 
     # CU vs AV scatter
     st.markdown('<div class="section-title">Prix unitaire CU vs AV</div>', unsafe_allow_html=True)
     st.markdown('<div class="section-sub">Comparaison par client · taille = quantité</div>', unsafe_allow_html=True)
@@ -431,29 +431,30 @@ with tab3:
     )
     fig11.update_layout(**PLOTLY_LAYOUT, height=380)
     st.plotly_chart(fig11, use_container_width=True)
-
+ 
 # ══════════════════════════════════════════════════════════════════════════════
 # TAB 4 — DONNÉES BRUTES
 # ══════════════════════════════════════════════════════════════════════════════
 with tab4:
     st.markdown('<div class="section-title">Données brutes filtrées</div>', unsafe_allow_html=True)
     st.markdown(f'<div class="section-sub">{len(fdf):,} lignes · {len(fdf.columns)} colonnes</div>', unsafe_allow_html=True)
-
+ 
     search = st.text_input("🔍 Rechercher dans les données", placeholder="Famille, client, DN…")
     if search:
         mask = fdf.apply(lambda col: col.astype(str).str.contains(search, case=False, na=False)).any(axis=1)
         display_df = fdf[mask]
     else:
         display_df = fdf
-
+ 
     st.dataframe(
         display_df.drop(columns=["Month", "Week", "YearWeek", "Cross Section Num"], errors="ignore"),
         use_container_width=True, height=520,
     )
-
+ 
     col_dl1, col_dl2 = st.columns([1, 5])
     with col_dl1:
         csv = display_df.to_csv(index=False).encode("utf-8")
         st.download_button(
             label="⬇ Exporter CSV",
-            data=csv, file_name="ventes_filtrees.csv", mime="text/csv",)
+            data=csv, file_name="ventes_filtrees.csv", mime="text/csv",
+        )
