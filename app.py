@@ -395,7 +395,7 @@ with tab1:
     n_customers  = fdf["Customer"].nunique()
 
     c1, c2, c3, c4, c5, c6 = st.columns(6)
-    c1.metric("Chiffre d'affaires", f"{total_amount/1e6:.2f}M MAD")
+    c1.metric("Chiffre d'affaires", f"{total_amount/1e6:.2f}M EUR")
     c2.metric("Quantité (m)",       f"{total_qty_m/1e3:.1f}K m")
     c3.metric("Quantité (km)",      f"{total_qty_km:.1f} km")
     c4.metric("LME moyen",          f"{avg_lme:.3f}")
@@ -411,13 +411,13 @@ with tab1:
     fig1 = make_subplots(specs=[[{"secondary_y": True}]])
     fig1.add_trace(go.Bar(
         x=monthly["Month"], y=monthly["Amount"],
-        name="CA (MAD)",
+        name="CA (EUR)",
         marker=dict(
             color=monthly["Amount"],
             colorscale=[[0,"#0e1f38"],[0.5,"#1a4a8a"],[1, GOLD]],
             line=dict(width=0),
         ),
-        hovertemplate="<b>%{x}</b><br>CA: %{y:,.0f} MAD<extra></extra>",
+        hovertemplate="<b>%{x}</b><br>CA: %{y:,.0f} EUR<extra></extra>",
         opacity=0.93,
     ), secondary_y=False)
     fig1.add_trace(go.Scatter(
@@ -429,7 +429,7 @@ with tab1:
         hovertemplate="<b>%{x}</b><br>Qté: %{y:,.0f} m<extra></extra>",
     ), secondary_y=True)
     fig1.update_layout(**PLOTLY, height=320, bargap=0.28)
-    fig1.update_yaxes(title_text="Montant MAD",
+    fig1.update_yaxes(title_text="Montant EUR",
                       title_font=dict(color=GOLD, size=11), secondary_y=False)
     fig1.update_yaxes(title_text="Quantité (m)",
                       title_font=dict(color=CYAN, size=11), secondary_y=True)
@@ -439,13 +439,13 @@ with tab1:
     col_l, col_r = st.columns([3, 2])
 
     with col_l:
-        st.markdown('<div class="section-hdr"><span class="dot"></span>ÉVOLUTION HEBDOMADAIRE PAR ENTITÉ</div>', unsafe_allow_html=True)
+        st.markdown('<div class="section-hdr"><span class="dot"></span>ÉVOLUTION HEBDOEURAIRE PAR ENTITÉ</div>', unsafe_allow_html=True)
         weekly = fdf.groupby(["YearWeek","Entities"])["Amount"].sum().reset_index()
         fig3 = px.line(
             weekly, x="YearWeek", y="Amount", color="Entities",
             color_discrete_sequence=[CYAN, GOLD],
             markers=True, line_shape="spline",
-            labels={"Amount":"Montant (MAD)","YearWeek":"Semaine"},
+            labels={"Amount":"Montant (EUR)","YearWeek":"Semaine"},
         )
         fig3.update_traces(line_width=3, marker_size=7,
                            marker=dict(line=dict(color=NAVY2, width=2)))
@@ -475,7 +475,7 @@ with tab1:
         st.plotly_chart(fig2, use_container_width=True)
 
     # LME
-    st.markdown('<div class="section-hdr"><span class="dot"></span>INDICE LME HEBDOMADAIRE</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-hdr"><span class="dot"></span>INDICE LME HEBDOEURAIRE</div>', unsafe_allow_html=True)
     lme_weekly = fdf.groupby("YearWeek")["LME"].mean().reset_index()
     mean_lme   = lme_weekly["LME"].mean()
     fig4 = go.Figure()
@@ -510,7 +510,7 @@ with tab2:
         orientation="h",
         color="Montant",
         color_continuous_scale=[[0,"#0e1f38"],[0.35,"#1a4a8a"],[1, GOLD]],
-        labels={"Montant":"CA (MAD)","Customer":""},
+        labels={"Montant":"CA (EUR)","Customer":""},
         text=by_customer["Montant"].apply(lambda x: f"{x/1e6:.2f}M"),
     )
     fig5.update_traces(
@@ -545,7 +545,7 @@ with tab2:
         fig7 = px.line(
             cust_monthly, x="Month", y="Amount", color="Customer",
             markers=True, line_shape="spline",
-            labels={"Amount":"CA (MAD)","Month":"Mois"},
+            labels={"Amount":"CA (EUR)","Month":"Mois"},
             color_discrete_sequence=VIVID,
         )
         fig7.update_traces(line_width=2.5, marker_size=6,
@@ -555,7 +555,7 @@ with tab2:
 
     st.markdown('<div class="section-hdr"><span class="dot"></span>TABLEAU RÉCAPITULATIF</div>', unsafe_allow_html=True)
     disp = by_customer.copy()
-    disp["Montant"] = disp["Montant"].map("{:,.0f} MAD".format)
+    disp["Montant"] = disp["Montant"].map("{:,.0f} EUR".format)
     disp["QTY_M"]   = disp["QTY_M"].map("{:,.0f} m".format)
     disp["QTY_KM"]  = disp["QTY_KM"].map("{:,.1f} km".format)
     st.dataframe(
@@ -577,7 +577,7 @@ with tab3:
             by_family, x="Amount", y="Family", orientation="h",
             color="Amount",
             color_continuous_scale=[[0,"#0a1f18"],[0.5,"#0e5c4a"],[1, GREEN]],
-            labels={"Amount":"CA (MAD)","Family":""},
+            labels={"Amount":"CA (EUR)","Family":""},
             text=by_family["Amount"].apply(lambda x: f"{x/1e3:.0f}K"),
         )
         fig8.update_traces(
@@ -598,7 +598,7 @@ with tab3:
             by_section, x="Cross Section", y="Amount",
             color="QTY_M",
             color_continuous_scale=[[0,"#0e1f38"],[0.5,"#0e3d6e"],[1, CYAN]],
-            labels={"Amount":"CA (MAD)","Cross Section":"Section (mm²)","QTY_M":"Qté (m)"},
+            labels={"Amount":"CA (EUR)","Cross Section":"Section (mm²)","QTY_M":"Qté (m)"},
         )
         fig9.update_layout(
             **PLOTLY, height=530,
@@ -618,7 +618,7 @@ with tab3:
         z=pivot.values, x=pivot.columns.tolist(), y=pivot.index.tolist(),
         colorscale=[[0, NAVY3],[0.3,"#1a3a6e"],[0.7, CYAN],[1, GOLD]],
         hoverongaps=False,
-        hovertemplate="<b>Section:</b> %{x}<br><b>Famille:</b> %{y}<br><b>CA:</b> %{z:,.0f} MAD<extra></extra>",
+        hovertemplate="<b>Section:</b> %{x}<br><b>Famille:</b> %{y}<br><b>CA:</b> %{z:,.0f} EUR<extra></extra>",
     ))
     fig10.update_layout(**PLOTLY, height=440,
                         xaxis_title="Section (mm²)", yaxis_title="Famille")
