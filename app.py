@@ -6,7 +6,7 @@ from plotly.subplots import make_subplots
 
 # ─── CONFIG ───────────────────────────────────────────────────────────────────
 st.set_page_config(
-    page_title="COFICAB · Ventes",
+    page_title="COFICAB · Analyse des Ventes",
     page_icon="📊",
     layout="wide",
     initial_sidebar_state="expanded",
@@ -31,23 +31,33 @@ st.markdown("""
 
   /* Metric cards */
   [data-testid="stMetric"] {
-    background: #111827;
-    border: 1px solid #1f2d47;
-    border-radius: 14px;
-    padding: 20px 24px;
+    background: #0f172a;
+    border: 1px solid #1e293b;
+    border-left: 3px solid #2563eb;
+    border-radius: 10px;
+    padding: 16px 20px;
+    transition: border-color 0.2s;
+  }
+  [data-testid="stMetric"]:hover {
+    border-left-color: #3b82f6;
+    border-color: #334155;
   }
   [data-testid="stMetricLabel"] {
-    font-family: 'DM Mono', monospace !important;
-    font-size: 0.65rem !important;
+    font-family: 'DM Sans', sans-serif !important;
+    font-size: 0.72rem !important;
+    font-weight: 500 !important;
     text-transform: uppercase;
-    letter-spacing: 0.1em;
-    color: #5a6a84 !important;
+    letter-spacing: 0.06em;
+    color: #94a3b8 !important;
   }
   [data-testid="stMetricValue"] {
-    font-family: 'Syne', sans-serif !important;
-    font-size: 1.8rem !important;
-    font-weight: 800 !important;
+    font-family: 'Inter', 'DM Sans', sans-serif !important;
+    font-size: 1.15rem !important;
+    font-weight: 600 !important;
     color: #e8edf5 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
   }
   [data-testid="stMetricDelta"] { font-family: 'DM Mono', monospace !important; }
 
@@ -76,8 +86,8 @@ st.markdown("""
     font-size: 0.85rem;
   }
   .stTabs [aria-selected="true"] {
-    background: #00e5a0 !important;
-    color: #000 !important;
+    background: #1d4ed8 !important;
+    color: #fff !important;
     font-weight: 700 !important;
   }
 
@@ -96,8 +106,8 @@ st.markdown("""
     margin-bottom: 4px;
   }
   .logo-badge {
-    background: #00e5a0;
-    color: #000;
+    background: #2563eb;
+    color: #fff;
     border-radius: 8px;
     padding: 4px 12px;
     font-size: 1rem;
@@ -121,14 +131,14 @@ st.markdown("""
     color: #5a6a84;
     margin-bottom: 14px;
   }
-  .kpi-accent { color: #00e5a0; font-family: 'DM Mono', monospace; }
+  .kpi-accent { color: #2563eb; font-family: 'DM Mono', monospace; }
 </style>
 """, unsafe_allow_html=True)
 
-ACCENT   = "#00e5a0"
+ACCENT   = "#2563eb"
 ACCENT2  = "#0073ff"
-ACCENT3  = "#ff4d6d"
-ACCENT4  = "#f5a623"
+ACCENT3  = "#f43f5e"
+ACCENT4  = "#f59e0b"
 BG       = "#0b0f1a"
 SURFACE  = "#111827"
 SURFACE2 = "#1a2235"
@@ -197,12 +207,12 @@ if len(date_range) == 2:
     fdf = fdf[(fdf["Date"].dt.date >= date_range[0]) & (fdf["Date"].dt.date <= date_range[1])]
 
 # ─── HEADER ───────────────────────────────────────────────────────────────────
-st.markdown('<div class="logo-header">📊 Vue d\'ensemble · Ventes</div>', unsafe_allow_html=True)
+st.markdown('<div class="logo-header">📊 Analyse des Ventes</div>', unsafe_allow_html=True)
 st.markdown(f'<div class="subtitle">Données filtrées · {len(fdf):,} lignes affichées</div>', unsafe_allow_html=True)
 st.markdown("")
 
 # ─── TABS ─────────────────────────────────────────────────────────────────────
-tab1, tab2, tab3, tab4 = st.tabs(["  KPI & Tendances  ", "  Clients  ", "  Produits  ", "  Données brutes  "])
+tab1, tab2, tab3, tab4 = st.tabs(["📈  KPI & Tendances", "👥  Clients", "📦  Produits", "🗃  Données brutes"])
 
 # ══════════════════════════════════════════════════════════════════════════════
 # TAB 1 — KPI & TENDANCES
@@ -237,7 +247,7 @@ with tab1:
         fig = make_subplots(specs=[[{"secondary_y": True}]])
         fig.add_trace(go.Bar(
             x=monthly["Month"], y=monthly["Amount"],
-            name="Montant (MAD)", marker_color=ACCENT,
+            name="Montant (MAD)", marker_color="#2563eb",
             opacity=0.85, hovertemplate="%{x}<br>%{y:,.0f} MAD<extra></extra>"
         ), secondary_y=False)
         fig.add_trace(go.Scatter(
@@ -316,7 +326,7 @@ with tab2:
     fig5 = px.bar(
         by_customer, x="Montant", y="Customer",
         orientation="h", color="Montant",
-        color_continuous_scale=[[0, SURFACE2], [1, ACCENT]],
+        color_continuous_scale=[[0, SURFACE2], [1, '#2563eb']],
         labels={"Montant": "CA (MAD)", "Customer": ""},
         text=by_customer["Montant"].apply(lambda x: f"{x:,.0f}"),
     )
@@ -457,4 +467,3 @@ with tab4:
         st.download_button(
             label="⬇ Exporter CSV",
             data=csv, file_name="ventes_filtrees.csv", mime="text/csv",)
-
