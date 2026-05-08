@@ -349,8 +349,7 @@ with st.sidebar:
 fdf = df.copy()
 if entity   != "Tous": fdf = fdf[fdf["Entities"] == entity]
 if customer != "Tous": fdf = fdf[fdf["Customer"] == customer]
-if family   != "Tous": fdf = fdf[fdf["Family"] == family]
-if Cross Section   != "Tous": fdf = fdf[fdf["Cross section"] == Cross Section]    
+if family   != "Tous": fdf = fdf[fdf["Family"] == family] 
 if len(date_range) == 2:
     fdf = fdf[(fdf["Date"].dt.date >= date_range[0]) &
               (fdf["Date"].dt.date <= date_range[1])]
