@@ -314,10 +314,10 @@ df = load_data()
 
 # ── SIDEBAR ────────────────────────────────────────────────────────────────────
 with st.sidebar:
-    st.image("COFICAB.png", width=170)
+    st.markdown('<div class="brand-logo"><span class="pill">C</span> COFICAB</div>', unsafe_allow_html=True)
     st.markdown(
         '<p style="font-family:JetBrains Mono,monospace;font-size:0.67rem;'
-        'color:#4d6b8a;margin:4px 0 18px;letter-spacing:0.05em;">ANALYSE DES VENTES · 2025</p>',
+        'color:#4d6b8a;margin:6px 0 18px;letter-spacing:0.05em;">ANALYSE DES VENTES · 2025</p>',
         unsafe_allow_html=True
     )
     st.markdown("---")
@@ -355,13 +355,11 @@ if len(date_range) == 2:
               (fdf["Date"].dt.date <= date_range[1])]
 
 # ── PAGE HEADER ────────────────────────────────────────────────────────────────
-col_logo, col_t, col_b = st.columns([1, 3, 1])
-with col_logo:
-    st.image("COFICAB.png", width=160)
+col_t, col_b = st.columns([3, 1])
 with col_t:
     st.markdown('<div class="page-title">Analyse des Ventes</div>', unsafe_allow_html=True)
     st.markdown(
-        f'<div class="page-meta">'
+        f'<div class="page-meta">COFICAB &nbsp;·&nbsp; '
         f'<span style="color:{GOLD}">{len(fdf):,} lignes</span> &nbsp;·&nbsp; '
         f'{date_range[0].strftime("%d %b %Y") if len(date_range)==2 else "—"}'
         f' → {date_range[1].strftime("%d %b %Y") if len(date_range)==2 else "—"}'
@@ -371,6 +369,7 @@ with col_b:
     st.markdown(
         '<div style="text-align:right;padding-top:16px;">'
         '<span class="badge-gold">● LIVE</span>'
+        '<span class="badge-cyan">COFICAB</span>'
         '</div>', unsafe_allow_html=True
     )
 
