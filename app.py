@@ -23,10 +23,9 @@ st.markdown("""
   --navy3:   #0f2040;
   --border:  #1a3560;
   --gold:    #f0b429;
-  --golddim: rgba(240,180,41,0.15);
-  --cyan:    #00d4ff;
   --text:    #dce8f5;
   --muted:   #4d6b8a;
+  --cyan:    #00d4ff;
 }
 
 html, body, [class*="css"] { font-family: 'Barlow', sans-serif; }
@@ -56,7 +55,7 @@ html, body, [class*="css"] { font-family: 'Barlow', sans-serif; }
 
 [data-testid="stMetricValue"] {
   font-family: 'Bebas Neue', sans-serif !important;
-  font-size: 2rem !important;
+  font-size: 2.2rem !important;
   color: #f0f6ff !important;
 }
 
@@ -94,7 +93,7 @@ html, body, [class*="css"] { font-family: 'Barlow', sans-serif; }
 </style>
 """, unsafe_allow_html=True)
 
-# ── CONSTANTES COULEURS ────────────────────────────────────────────────────────
+# ── CONSTANTES ─────────────────────────────────────────────────────────────────
 GOLD, CYAN, GREEN, CORAL = "#f0b429", "#00d4ff", "#00e87a", "#ff5757"
 NAVY2, BORDER, MUTED, TEXT = "#0a1628", "#1a3560", "#4d6b8a", "#dce8f5"
 VIVID = [CYAN, GOLD, GREEN, CORAL, "#a855f7", "#fb923c"]
@@ -108,7 +107,7 @@ PLOTLY = dict(
     margin=dict(l=16, r=16, t=40, b=16),
 )
 
-# ── CHARGEMENT DES DONNÉES ─────────────────────────────────────────────────────
+# ── CHARGEMENT DATA ────────────────────────────────────────────────────────────
 @st.cache_data
 def load_data():
     df = pd.read_excel("ventes.xlsx")
@@ -116,28 +115,29 @@ def load_data():
     df["Date"] = pd.to_datetime(df["Date"].astype(str), format="%Y%m%d")
     df["Month"] = df["Date"].dt.to_period("M").astype(str)
     df["YearWeek"] = df["Date"].dt.strftime("%Y-W%V")
-    # Conversion de la section en string pour un filtrage propre
+    # Conversion propre pour le filtrage
     df["Cross Section"] = df["Cross Section"].astype(str).replace('nan', 'N/A')
     return df
 
 try:
     df = load_data()
 except Exception as e:
-    st.error(f"Erreur lors du chargement du fichier 'ventes.xlsx': {e}")
+    st.error(f"Erreur de fichier : {e}")
     st.stop()
 
 # ── SIDEBAR ────────────────────────────────────────────────────────────────────
 with st.sidebar:
     st.markdown('<div class="brand-logo"><span class="pill">C</span> COFICAB</div>', unsafe_allow_html=True)
+    st.markdown("<p style='font-size:0.7rem; color:#4d6b8a; margin-bottom:20px;'>REPORTING COMMERCIAL · EUR</p>", unsafe_allow_html=True)
     st.markdown("---")
     
     entity = st.selectbox("Entité", ["Tous"] + sorted(df["Entities"].dropna().unique().tolist()))
     customer = st.selectbox("Client", ["Tous"] + sorted(df["Customer"].dropna().unique().tolist()))
     family = st.selectbox("Famille produit", ["Tous"] + sorted(df["Family"].dropna().unique().tolist()))
     
-    # NOUVEAU FILTRE : Cross Section
+    # FILTRE CROSS SECTION
     sections = sorted(df["Cross Section"].unique().tolist())
-    section_filter = st.selectbox("Cross Section (mm²)", ["Tous"] + sections)
+    section_val = st.selectbox("Cross Section (mm²)", ["Tous"] + sections)
 
     date_range = st.date_input("Période", value=(df["Date"].min().date(), df["Date"].max().date()))
 
@@ -146,47 +146,46 @@ fdf = df.copy()
 if entity != "Tous": fdf = fdf[fdf["Entities"] == entity]
 if customer != "Tous": fdf = fdf[fdf["Customer"] == customer]
 if family != "Tous": fdf = fdf[fdf["Family"] == family]
-if section_filter != "Tous": fdf = fdf[fdf["Cross Section"] == section_filter]
+if section_val != "Tous": fdf = fdf[fdf["Cross Section"] == section_val]
 if len(date_range) == 2:
     fdf = fdf[(fdf["Date"].dt.date >= date_range[0]) & (fdf["Date"].dt.date <= date_range[1])]
 
 # ── HEADER ─────────────────────────────────────────────────────────────────────
-st.markdown('<div style="font-family:Bebas Neue; font-size:2.4rem; color:white;">Analyse des Ventes</div>', unsafe_allow_html=True)
-st.markdown(f'<div style="font-family:JetBrains Mono; color:{MUTED}; font-size:0.75rem;">COFICAB GROUP · DEVISE : EUR</div>', unsafe_allow_html=True)
+st.markdown('<div style="font-family:Bebas Neue; font-size:2.4rem; color:white; letter-spacing:2px;">Analyse des Ventes</div>', unsafe_allow_html=True)
+st.markdown(f'<div style="font-family:JetBrains Mono; color:{MUTED}; font-size:0.75rem;">COFICAB GROUP · DEVISE ACTIVE : EUR</div>', unsafe_allow_html=True)
 st.markdown("<br>", unsafe_allow_html=True)
 
 # ── TABS ───────────────────────────────────────────────────────────────────────
-tab1, tab2, tab3, tab4 = st.tabs(["⚡ KPI & Tendances", "👥 Clients", "📦 Produits", "🗃 Données brutes"])
+tab1, tab2, tab3, tab4 = st.tabs(["⚡ KPI & Tendances", "👥 Clients", "📦 Produits", "🗃 Données"])
 
-# --- TAB 1: KPI ---
+# --- TAB 1 ---
 with tab1:
     c1, c2, c3, c4, c5 = st.columns(5)
     c1.metric("CA Total", f"{fdf['Amount'].sum()/1e6:.2f}M €")
     c2.metric("Volume (m)", f"{fdf['QTY M'].sum()/1e3:.1f}K m")
-    # QUANTITÉ MOYENNE PAR LIGNE
-    c3.metric("Qté Moyenne", f"{fdf['QTY M'].mean():.1f} m") 
+    c3.metric("Qté Moyenne", f"{fdf['QTY M'].mean():.1f} m") # DEMANDE : Quantité moyenne
     c4.metric("LME Moyen", f"{fdf['LME'].mean():.3f}")
     c5.metric("Nb Factures", f"{fdf['Invoice'].nunique():,}")
 
     st.markdown("<br>", unsafe_allow_html=True)
-    st.markdown('<div class="section-hdr">CA MENSUEL & VOLUME</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-hdr">ÉVOLUTION DU CA ET VOLUME</div>', unsafe_allow_html=True)
     
     monthly = fdf.groupby("Month").agg(Amount=("Amount","sum"), Qty=("QTY M","sum")).reset_index()
     fig1 = make_subplots(specs=[[{"secondary_y": True}]])
-    fig1.add_trace(go.Bar(x=monthly["Month"], y=monthly["Amount"], name="CA (€)", marker_color=GOLD), secondary_y=False)
+    fig1.add_trace(go.Bar(x=monthly["Month"], y=monthly["Amount"], name="CA (€)", marker_color=GOLD, opacity=0.8), secondary_y=False)
     fig1.add_trace(go.Scatter(x=monthly["Month"], y=monthly["Qty"], name="Volume (m)", line=dict(color=CYAN, width=3)), secondary_y=True)
-    fig1.update_layout(**PLOTLY, height=350)
+    fig1.update_layout(**PLOTLY, height=350, legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1))
     st.plotly_chart(fig1, use_container_width=True)
 
-# --- TAB 2: CLIENTS ---
+# --- TAB 2 ---
 with tab2:
-    st.markdown('<div class="section-hdr">TOP 10 CLIENTS (EUR)</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-hdr">TOP 10 CLIENTS PAR CHIFFRE D\'AFFAIRES</div>', unsafe_allow_html=True)
     top_cust = fdf.groupby("Customer")["Amount"].sum().nlargest(10).reset_index()
     fig2 = px.bar(top_cust, x="Amount", y="Customer", orientation='h', color="Amount", color_continuous_scale="Blues")
-    fig2.update_layout(**PLOTLY, height=400, showlegend=False)
+    fig2.update_layout(**PLOTLY, height=450, showlegend=False, coloraxis_showscale=False)
     st.plotly_chart(fig2, use_container_width=True)
 
-# --- TAB 3: PRODUITS ---
+# --- TAB 3 ---
 with tab3:
     col1, col2 = st.columns(2)
     with col1:
@@ -197,13 +196,14 @@ with tab3:
         st.plotly_chart(fig3, use_container_width=True)
     
     with col2:
-        st.markdown('<div class="section-hdr">TOP CROSS SECTIONS (€)</div>', unsafe_allow_html=True)
+        st.markdown('<div class="section-hdr">TOP 10 CROSS SECTIONS (EUR)</div>', unsafe_allow_html=True)
         sec_data = fdf.groupby("Cross Section")["Amount"].sum().nlargest(10).reset_index()
-        fig4 = px.bar(sec_data, x="Cross Section", y="Amount", marker_color=CYAN)
+        # CORRECTION DE L'ERREUR ICI (color_discrete_sequence au lieu de marker_color)
+        fig4 = px.bar(sec_data, x="Cross Section", y="Amount", color_discrete_sequence=[CYAN])
         fig4.update_layout(**PLOTLY, height=400)
         st.plotly_chart(fig4, use_container_width=True)
 
-# --- TAB 4: DONNÉES ---
+# --- TAB 4 ---
 with tab4:
     st.markdown('<div class="section-hdr">DONNÉES FILTRÉES</div>', unsafe_allow_html=True)
-    st.dataframe(fdf, use_container_width=True)
+    st.dataframe(fdf.drop(columns=['Month', 'YearWeek'], errors='ignore'), use_container_width=True)
